@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from collections.abc import Iterator
 from urllib.parse import urlsplit
 
 if __package__:
@@ -41,6 +42,16 @@ class URLShortener:
         if not isinstance(code, str):
             raise TypeError("code must be a string")
         return self._code_to_url.get(code)
+
+    def iter_url_buckets(
+        self,
+    ) -> Iterator[tuple[int, tuple[tuple[str, str], ...]]]:
+        """Expose a read-only bucket snapshot of the URL-to-code index."""
+        return self._url_to_code.iter_buckets()
+
+    def url_hash_trace(self, url: str) -> tuple[tuple[str, int, int, int], ...]:
+        """Return the Horner-hash steps used to place a URL in its bucket."""
+        return self._url_to_code.horner_trace(url)
 
     @staticmethod
     def _validated_url(url: str) -> str:
