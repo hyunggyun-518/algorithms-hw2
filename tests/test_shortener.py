@@ -14,44 +14,63 @@ from src.shortener import URLShortener
 
 
 class ShortenerTests(unittest.TestCase):
-    def setUp(self):
-        self.shortener = URLShortener()
+    strategies = ("chaining", "linear-probing")
 
     def test_first_code_is_base62_encoding_of_one(self):
-        self.assertEqual(self.shortener.shorten("https://example.com/first"), encode(1))
+        for strategy in self.strategies:
+            with self.subTest(strategy=strategy):
+                shortener = URLShortener(strategy)
+                self.assertEqual(shortener.shorten("https://example.com/first"), encode(1))
 
     def test_surrounding_whitespace_is_removed_and_url_is_preserved(self):
         url = "https://example.com/path?q=one#part"
 
-        code = self.shortener.shorten(f"  {url}  ")
+        for strategy in self.strategies:
+            with self.subTest(strategy=strategy):
+                shortener = URLShortener(strategy)
+                code = shortener.shorten(f"  {url}  ")
 
-        self.assertEqual(self.shortener.expand(code), url)
+                self.assertEqual(shortener.expand(code), url)
 
     def test_empty_malformed_unsupported_and_hostless_urls_are_rejected(self):
-        for url in ("", "   ", "not-a-url", "ftp://example.com/path", "https:///path"):
-            with self.subTest(url=url), self.assertRaises(ValueError):
-                self.shortener.shorten(url)
+        for strategy in self.strategies:
+            for url in ("", "   ", "not-a-url", "ftp://example.com/path", "https:///path"):
+                with self.subTest(strategy=strategy, url=url), self.assertRaises(ValueError):
+                    URLShortener(strategy).shorten(url)
 
     def test_duplicate_url_reuses_code_without_consuming_an_id(self):
         first_url = "https://example.com/first"
         second_url = "https://example.com/second"
 
-        first_code = self.shortener.shorten(first_url)
-        self.assertEqual(self.shortener.shorten(first_url), first_code)
+        for strategy in self.strategies:
+            with self.subTest(strategy=strategy):
+                shortener = URLShortener(strategy)
+                first_code = shortener.shorten(first_url)
+                self.assertEqual(shortener.shorten(first_url), first_code)
 
-        self.assertEqual(self.shortener.shorten(second_url), encode(2))
+                self.assertEqual(shortener.shorten(second_url), encode(2))
 
     def test_distinct_urls_receive_distinct_codes(self):
-        first_code = self.shortener.shorten("https://example.com/one")
-        second_code = self.shortener.shorten("https://example.com/two")
+        for strategy in self.strategies:
+            with self.subTest(strategy=strategy):
+                shortener = URLShortener(strategy)
+                first_code = shortener.shorten("https://example.com/one")
+                second_code = shortener.shorten("https://example.com/two")
 
-        self.assertNotEqual(first_code, second_code)
+                self.assertNotEqual(first_code, second_code)
 
     def test_unknown_code_and_non_string_code_are_rejected(self):
-        with self.assertRaises(KeyError):
-            self.shortener.expand("not-registered")
-        with self.assertRaises(TypeError):
-            self.shortener.expand(123)
+        for strategy in self.strategies:
+            with self.subTest(strategy=strategy):
+                shortener = URLShortener(strategy)
+                with self.assertRaises(KeyError):
+                    shortener.expand("not-registered")
+                with self.assertRaises(TypeError):
+                    shortener.expand(123)
+
+    def test_unknown_hash_table_strategy_is_rejected(self):
+        with self.assertRaises(ValueError):
+            URLShortener("unknown")
 
 
 class _NoRedirectHandler(HTTPRedirectHandler):
@@ -73,13 +92,15 @@ class ShortenerHTTPTests(unittest.TestCase):
     def tearDown(self):
         self._stop_server()
 
-    def _start_server(self):
+    def _start_server(self, strategy="chaining"):
         self.server = subprocess.Popen(
             [
                 sys.executable,
                 str(self.project_root / "src" / "server.py"),
                 "--port",
                 str(self.port),
+                "--strategy",
+                strategy,
             ],
             cwd=self.project_root,
             stdout=subprocess.DEVNULL,
@@ -173,6 +194,38 @@ class ShortenerHTTPTests(unittest.TestCase):
         self.assertIn('class="arrow" aria-label="다음 노드"', page)
         self.assertIn("호너 해시 계산 보기", page)
         self.assertIn("h<sub>1</sub> = (0 × 31 + ord(&#x27;h&#x27; = 104))", page)
+
+    def test_linear_table_page_shows_lookup_trace_and_reason(self):
+        self._stop_server()
+        self._start_server("linear-probing")
+        url = "https://example.com/linear"
+        status, _, _ = self._request(
+            "POST",
+            "/shorten",
+            json.dumps({"url": url}).encode(),
+        )
+        self.assertEqual(status, 201)
+
+        status, _, body = self._request("GET", f"/table?key={url}")
+        page = body.decode("utf-8")
+
+        self.assertEqual(status, 200)
+        self.assertEqual(page.count('<section class="slot">'), 8)
+        self.assertIn("선형 탐지", page)
+        self.assertIn("호너 해시 계산 보기", page)
+        self.assertIn("시작 칸:", page)
+        self.assertIn("확인한 칸 순서:", page)
+        self.assertIn("성공:", page)
+        self.assertIn(url, page)
+
+        missing_url = "https://example.com/not-stored"
+        status, _, body = self._request("GET", f"/table?key={missing_url}")
+        page = body.decode("utf-8")
+
+        self.assertEqual(status, 200)
+        self.assertIn("확인한 칸 순서:", page)
+        self.assertIn("실패:", page)
+        self.assertIn("비어 있어 키가 없음을 확정했습니다.", page)
 
     def test_post_creates_new_url_then_returns_existing_code_for_duplicate(self):
         body = b'{"url":"https://example.com/repeated"}'

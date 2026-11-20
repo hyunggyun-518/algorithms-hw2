@@ -7,18 +7,26 @@ from urllib.parse import urlsplit
 
 if __package__:
     from .base62 import encode
-    from .hash_table import HashTable
+    from .hash_table import HashTable, LinearProbingHashTable
 else:
     from base62 import encode
-    from hash_table import HashTable
+    from hash_table import HashTable, LinearProbingHashTable
 
 
 class URLShortener:
     """Create stable base62 codes and expand them to their original URLs."""
 
-    def __init__(self) -> None:
-        self._url_to_code = HashTable()
-        self._code_to_url = HashTable()
+    def __init__(self, strategy: str = "chaining") -> None:
+        if strategy == "chaining":
+            table_type = HashTable
+        elif strategy == "linear-probing":
+            table_type = LinearProbingHashTable
+        else:
+            raise ValueError(f"unknown hash table strategy: {strategy!r}")
+
+        self.strategy = strategy
+        self._url_to_code = table_type()
+        self._code_to_url = table_type()
         self._next_id = 1
 
     def shorten(self, url: str) -> str:
@@ -52,6 +60,13 @@ class URLShortener:
     def url_hash_trace(self, url: str) -> tuple[tuple[str, int, int, int], ...]:
         """Return the Horner-hash steps used to place a URL in its bucket."""
         return self._url_to_code.horner_trace(url)
+
+    def url_lookup_trace(
+        self,
+        url: str,
+    ) -> tuple[str | None, tuple[int, ...]]:
+        """Return a URL's code and the bucket or slots checked during lookup."""
+        return self._url_to_code.get_with_trace(url)
 
     @staticmethod
     def _validated_url(url: str) -> str:

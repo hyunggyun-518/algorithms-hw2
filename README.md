@@ -34,11 +34,16 @@
 | 하고 싶은 것 | 명령 |
 | --- | --- |
 | 테스트 | `make test` |
-| 웹 서버 (포트 8000) | `make serve` |
+| 웹 서버 (포트 8000, 개별 체이닝) | `make serve` |
+| 선형 탐지 테이블 보기 | `make serve TABLE=linear-probing` 후 `/table` 방문 |
+| 선형 탐지 조회 과정 보기 | `/table?key=<조회할-URL>` 방문 |
 | 충돌 실험 | `make experiment` |
 | 놓친 단계 따라잡기 | `sh tools/catchup.sh <단계 번호>` |
 
 외부 라이브러리는 쓰지 않습니다. Python 표준 모듈만으로 충분합니다.
+
+`make experiment`는 두 충돌 처리 방식의 성공·실패 탐색 비용을 측정해
+`experiments/results.csv`와 `experiments/probe_experiment.svg`에 저장합니다.
 
 ## 로컬에서 하기
 

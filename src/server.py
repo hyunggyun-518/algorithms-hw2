@@ -7,7 +7,7 @@ import html
 import json
 from http import HTTPStatus
 from http.server import BaseHTTPRequestHandler, HTTPServer
-from urllib.parse import parse_qsl, urlsplit
+from urllib.parse import parse_qs, parse_qsl, urlsplit
 
 if __package__:
     from .base62 import decode
@@ -31,8 +31,8 @@ class _JSONObject:
 class _ShortenerHTTPServer(HTTPServer):
     allow_reuse_address = True
 
-    def __init__(self, address: tuple[str, int]) -> None:
-        self.shortener = URLShortener()
+    def __init__(self, address: tuple[str, int], strategy: str = "chaining") -> None:
+        self.shortener = URLShortener(strategy)
         super().__init__(address, _ShortenerRequestHandler)
 
 
@@ -142,6 +142,11 @@ class _ShortenerRequestHandler(BaseHTTPRequestHandler):
 
     def _table_page(self) -> str:
         buckets = tuple(self.server.shortener.iter_url_buckets())
+        if self.server.shortener.strategy == "linear-probing":
+            query = parse_qs(urlsplit(self.path).query, keep_blank_values=True)
+            search_keys = query.get("key")
+            return self._linear_table_page(buckets, search_keys[0] if search_keys else None)
+
         sections: list[str] = []
         entry_count = 0
 
@@ -206,6 +211,104 @@ class _ShortenerRequestHandler(BaseHTTPRequestHandler):
             f'<div class="buckets">{"".join(sections)}</div>'
         )
 
+    def _linear_table_page(
+        self,
+        buckets: tuple[tuple[int, tuple[tuple[str, str], ...]], ...],
+        search_key: str | None,
+    ) -> str:
+        sections: list[str] = []
+        entry_count = 0
+
+        for slot_index, entries in buckets:
+            if not entries:
+                body = '<p class="empty">비어 있음</p>'
+            else:
+                entry_count += 1
+                url, code = entries[0]
+                safe_url = html.escape(url)
+                safe_code = html.escape(code, quote=True)
+                body = (
+                    '<article class="entry">'
+                    f"<h3>URL 키</h3><code class=\"url-key\">{safe_url}</code>"
+                    f"<p>짧은 코드: <code>{safe_code}</code></p>"
+                    f'<p>짧은 링크: <a href="/{safe_code}">/{safe_code}</a></p>'
+                    "</article>"
+                )
+            sections.append(
+                f'<section class="slot"><h2>칸 {slot_index}</h2>{body}</section>'
+            )
+
+        form_value = "" if search_key is None else html.escape(search_key, quote=True)
+        content = [
+            f"<p>선형 탐지 · 칸 {len(buckets)}개 · URL {entry_count}개</p>",
+            '<form action="/table" method="get">'
+            '<label for="key">조회할 URL 키</label>'
+            f'<input id="key" name="key" type="text" value="{form_value}">'
+            '<button type="submit">조회</button></form>',
+        ]
+        if search_key is not None:
+            content.append(self._linear_lookup_result(search_key, buckets))
+        else:
+            content.append("<p>URL 키를 입력하면 탐색 과정을 확인할 수 있습니다.</p>")
+        content.extend(
+            (
+                '<p><a href="/">URL 단축기로 돌아가기</a></p>',
+                f'<div class="slots">{"".join(sections)}</div>',
+            )
+        )
+        return "".join(content)
+
+    def _linear_lookup_result(
+        self,
+        key: str,
+        buckets: tuple[tuple[int, tuple[tuple[str, str], ...]], ...],
+    ) -> str:
+        value, checked_slots = self.server.shortener.url_lookup_trace(key)
+        hash_steps = self.server.shortener.url_hash_trace(key)
+        start_index = hash_steps[-1][3] if hash_steps else 0
+        trace_rows = [
+            "<li><code>h<sub>{}</sub> = "
+            "({} × 31 + ord({} = {})) mod {} = {}</code></li>".format(
+                step_index,
+                previous_value,
+                html.escape(repr(character)),
+                code_point,
+                len(buckets),
+                result,
+            )
+            for step_index, (character, previous_value, code_point, result) in enumerate(
+                hash_steps,
+                start=1,
+            )
+        ]
+        checked_text = " → ".join(str(slot) for slot in checked_slots)
+        if value is not None:
+            outcome = (
+                f"성공: 칸 {checked_slots[-1]}에서 키가 일치해 "
+                f"코드 {html.escape(value)}를 찾았습니다."
+            )
+        elif len(checked_slots) < len(buckets):
+            outcome = (
+                f"실패: 칸 {checked_slots[-1]}이 비어 있어 키가 없음을 "
+                "확정했습니다."
+            )
+        else:
+            outcome = (
+                f"실패: {len(buckets)}개 칸을 모두 확인하고 시작 칸 "
+                f"{start_index}으로 돌아와 키가 없음을 확정했습니다."
+            )
+
+        return (
+            '<section class="lookup-result"><h2>조회 과정</h2>'
+            f"<p>조회 키: <code>{html.escape(key)}</code></p>"
+            "<details open><summary>호너 해시 계산 보기</summary>"
+            "<p><code>h<sub>0</sub> = 0</code></p>"
+            f"<ol>{''.join(trace_rows)}</ol>"
+            f"<p>시작 칸: {start_index}</p></details>"
+            f"<p>확인한 칸 순서: <code>{checked_text}</code></p>"
+            f"<p>{outcome}</p></section>"
+        )
+
     @staticmethod
     def _html_document(title: str, content: str) -> str:
         safe_title = html.escape(title)
@@ -222,6 +325,9 @@ class _ShortenerRequestHandler(BaseHTTPRequestHandler):
             ".buckets{display:grid;gap:.75rem}.bucket h2{margin:.1rem 0 .75rem;font-size:1.1rem}"
             ".chain{display:flex;align-items:stretch;gap:.55rem;overflow-x:auto;padding:.25rem}"
             ".node{min-width:17rem;max-width:28rem;overflow-wrap:anywhere}"
+            ".slots{display:grid;grid-template-columns:repeat(auto-fit,minmax(12rem,1fr));gap:.75rem}"
+            ".slot,.lookup-result{background:white;border:1px solid #d5dce3;border-radius:.6rem;padding:1rem}"
+            ".slot h2{margin:.1rem 0 .75rem;font-size:1.1rem}.entry{overflow-wrap:anywhere}"
             ".node h3{margin:.1rem 0;font-size:.95rem}.url-key{overflow-wrap:anywhere}"
             ".arrow{align-self:center;font-size:1.4rem;color:#526678;white-space:nowrap}"
             ".empty{color:#667}.node details{margin-top:.75rem}.node ol{padding-left:1.5rem}"
@@ -284,9 +390,15 @@ class _ShortenerRequestHandler(BaseHTTPRequestHandler):
 def main() -> None:
     parser = argparse.ArgumentParser(description="Run the URL shortener HTTP server.")
     parser.add_argument("--port", type=int, default=8000)
+    parser.add_argument(
+        "--strategy",
+        choices=("chaining", "linear-probing"),
+        default="chaining",
+        help="hash table collision strategy",
+    )
     args = parser.parse_args()
 
-    server = _ShortenerHTTPServer(("", args.port))
+    server = _ShortenerHTTPServer(("", args.port), args.strategy)
     try:
         server.serve_forever()
     except KeyboardInterrupt:

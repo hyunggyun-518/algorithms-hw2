@@ -1,74 +1,142 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="960" height="560" viewBox="0 0 960 560">
-<style>text{font-family:Arial,sans-serif;fill:#222}.grid{stroke:#ddd;stroke-width:1}.axis{stroke:#333;stroke-width:1.5}.measured{stroke-width:2.5;fill:none}.theory{stroke-width:2;fill:none;stroke-dasharray:7 5}</style>
+<svg xmlns="http://www.w3.org/2000/svg" width="1120" height="620" viewBox="0 0 1120 620">
+<style>text{font-family:Arial,sans-serif;fill:#222}.grid{stroke:#ddd;stroke-width:1}.axis{stroke:#333;stroke-width:1.5}.line{stroke-width:2.5;fill:none}.theory{stroke-dasharray:7 5}</style>
 <rect width="100%" height="100%" fill="white"/>
-<text x="480" y="30" text-anchor="middle" font-size="20">Separate chaining: measured and theoretical node comparisons</text>
-<line class="grid" x1="78" y1="486.00" x2="700" y2="486.00"/>
-<text x="66" y="491.00" text-anchor="end" font-size="12">0</text>
-<line class="grid" x1="78" y1="393.56" x2="700" y2="393.56"/>
-<text x="66" y="398.56" text-anchor="end" font-size="12">1</text>
-<line class="grid" x1="78" y1="301.11" x2="700" y2="301.11"/>
-<text x="66" y="306.11" text-anchor="end" font-size="12">2</text>
-<line class="grid" x1="78" y1="208.67" x2="700" y2="208.67"/>
-<text x="66" y="213.67" text-anchor="end" font-size="12">3</text>
-<line class="grid" x1="78" y1="116.22" x2="700" y2="116.22"/>
-<text x="66" y="121.22" text-anchor="end" font-size="12">4</text>
-<line class="grid" x1="78.00" y1="70" x2="78.00" y2="486"/>
-<text x="78.00" y="508" text-anchor="middle" font-size="12">0.25</text>
-<line class="grid" x1="202.40" y1="70" x2="202.40" y2="486"/>
-<text x="202.40" y="508" text-anchor="middle" font-size="12">1</text>
-<line class="grid" x1="368.27" y1="70" x2="368.27" y2="486"/>
-<text x="368.27" y="508" text-anchor="middle" font-size="12">2</text>
-<line class="grid" x1="534.13" y1="70" x2="534.13" y2="486"/>
-<text x="534.13" y="508" text-anchor="middle" font-size="12">3</text>
-<line class="grid" x1="700.00" y1="70" x2="700.00" y2="486"/>
-<text x="700.00" y="508" text-anchor="middle" font-size="12">4</text>
-<line class="axis" x1="78" y1="486" x2="700" y2="486"/>
-<line class="axis" x1="78" y1="70" x2="78" y2="486"/>
-<text x="389.00" y="540" text-anchor="middle" font-size="14">Load factor α</text>
-<text x="20" y="278.00" text-anchor="middle" font-size="14" transform="rotate(-90 20 278.00)">Average nodes compared</text>
-<polyline class="measured" stroke="#1769aa" points="78.00,382.17 119.47,370.11 160.93,358.50 202.40,346.87 243.87,335.61 285.33,324.06 326.80,314.52 368.27,301.13 409.73,289.05 451.20,276.93 492.67,267.57 534.13,254.74 575.60,244.74 617.07,230.66 658.53,218.89 700.00,208.77"/>
-<circle cx="78.00" cy="382.17" r="2.5" fill="#1769aa"/>
-<circle cx="119.47" cy="370.11" r="2.5" fill="#1769aa"/>
-<circle cx="160.93" cy="358.50" r="2.5" fill="#1769aa"/>
-<circle cx="202.40" cy="346.87" r="2.5" fill="#1769aa"/>
-<circle cx="243.87" cy="335.61" r="2.5" fill="#1769aa"/>
-<circle cx="285.33" cy="324.06" r="2.5" fill="#1769aa"/>
-<circle cx="326.80" cy="314.52" r="2.5" fill="#1769aa"/>
-<circle cx="368.27" cy="301.13" r="2.5" fill="#1769aa"/>
-<circle cx="409.73" cy="289.05" r="2.5" fill="#1769aa"/>
-<circle cx="451.20" cy="276.93" r="2.5" fill="#1769aa"/>
-<circle cx="492.67" cy="267.57" r="2.5" fill="#1769aa"/>
-<circle cx="534.13" cy="254.74" r="2.5" fill="#1769aa"/>
-<circle cx="575.60" cy="244.74" r="2.5" fill="#1769aa"/>
-<circle cx="617.07" cy="230.66" r="2.5" fill="#1769aa"/>
-<circle cx="658.53" cy="218.89" r="2.5" fill="#1769aa"/>
-<circle cx="700.00" cy="208.77" r="2.5" fill="#1769aa"/>
-<line x1="728" y1="94" x2="756" y2="94" stroke="#1769aa" stroke-width="2.5"/>
-<text x="764" y="99" font-size="12">Successful measured</text>
-<polyline class="theory" stroke="#1769aa" points="78.00,382.00 119.47,370.45 160.93,358.89 202.40,347.33 243.87,335.78 285.33,324.22 326.80,312.66 368.27,301.11 409.73,289.56 451.20,278.01 492.67,266.44 534.13,254.89 575.60,243.34 617.07,231.77 658.53,220.22 700.00,208.67"/>
-<line x1="728" y1="120" x2="756" y2="120" stroke="#1769aa" stroke-width="2.5" stroke-dasharray="7 5"/>
-<text x="764" y="125" font-size="12">Successful theory: 1 + α/2</text>
-<polyline class="measured" stroke="#c62828" points="78.00,465.49 119.47,438.24 160.93,417.43 202.40,395.63 243.87,371.87 285.33,347.97 326.80,325.89 368.27,301.05 409.73,278.79 451.20,256.11 492.67,231.84 534.13,210.04 575.60,185.64 617.07,162.44 658.53,140.69 700.00,119.73"/>
-<circle cx="78.00" cy="465.49" r="2.5" fill="#c62828"/>
-<circle cx="119.47" cy="438.24" r="2.5" fill="#c62828"/>
-<circle cx="160.93" cy="417.43" r="2.5" fill="#c62828"/>
-<circle cx="202.40" cy="395.63" r="2.5" fill="#c62828"/>
-<circle cx="243.87" cy="371.87" r="2.5" fill="#c62828"/>
-<circle cx="285.33" cy="347.97" r="2.5" fill="#c62828"/>
-<circle cx="326.80" cy="325.89" r="2.5" fill="#c62828"/>
-<circle cx="368.27" cy="301.05" r="2.5" fill="#c62828"/>
-<circle cx="409.73" cy="278.79" r="2.5" fill="#c62828"/>
-<circle cx="451.20" cy="256.11" r="2.5" fill="#c62828"/>
-<circle cx="492.67" cy="231.84" r="2.5" fill="#c62828"/>
-<circle cx="534.13" cy="210.04" r="2.5" fill="#c62828"/>
-<circle cx="575.60" cy="185.64" r="2.5" fill="#c62828"/>
-<circle cx="617.07" cy="162.44" r="2.5" fill="#c62828"/>
-<circle cx="658.53" cy="140.69" r="2.5" fill="#c62828"/>
-<circle cx="700.00" cy="119.73" r="2.5" fill="#c62828"/>
-<line x1="728" y1="146" x2="756" y2="146" stroke="#c62828" stroke-width="2.5"/>
-<text x="764" y="151" font-size="12">Unsuccessful measured</text>
-<polyline class="theory" stroke="#c62828" points="78.00,462.89 119.47,439.79 160.93,416.66 202.40,393.56 243.87,370.45 285.33,347.32 326.80,324.22 368.27,301.11 409.73,278.01 451.20,254.90 492.67,231.77 534.13,208.67 575.60,185.56 617.07,162.43 658.53,139.33 700.00,116.22"/>
-<line x1="728" y1="172" x2="756" y2="172" stroke="#c62828" stroke-width="2.5" stroke-dasharray="7 5"/>
-<text x="764" y="177" font-size="12">Unsuccessful theory: α</text>
-<text x="728" y="210" font-size="11">Buckets: 4093; seed: 20261120</text>
+<text x="560" y="34" text-anchor="middle" font-size="21">Hash-table search cost: measured and theoretical</text>
+<text x="295.0" y="77" text-anchor="middle" font-size="17">Successful search</text>
+<line class="grid" x1="118" y1="555.00" x2="503" y2="555.00"/>
+<text x="109" y="559.00" text-anchor="end" font-size="11">0</text>
+<line class="grid" x1="118" y1="490.71" x2="503" y2="490.71"/>
+<text x="109" y="494.71" text-anchor="end" font-size="11">1</text>
+<line class="grid" x1="118" y1="426.43" x2="503" y2="426.43"/>
+<text x="109" y="430.43" text-anchor="end" font-size="11">2</text>
+<line class="grid" x1="118" y1="362.14" x2="503" y2="362.14"/>
+<text x="109" y="366.14" text-anchor="end" font-size="11">3</text>
+<line class="grid" x1="118" y1="297.86" x2="503" y2="297.86"/>
+<text x="109" y="301.86" text-anchor="end" font-size="11">4</text>
+<line class="grid" x1="118" y1="233.57" x2="503" y2="233.57"/>
+<text x="109" y="237.57" text-anchor="end" font-size="11">5</text>
+<line class="grid" x1="118" y1="169.29" x2="503" y2="169.29"/>
+<text x="109" y="173.29" text-anchor="end" font-size="11">6</text>
+<line class="grid" x1="118" y1="105.00" x2="503" y2="105.00"/>
+<text x="109" y="109.00" text-anchor="end" font-size="11">7</text>
+<line class="grid" x1="118.00" y1="105" x2="118.00" y2="555"/>
+<text x="118.00" y="575" text-anchor="middle" font-size="10">0.1</text>
+<line class="grid" x1="166.12" y1="105" x2="166.12" y2="555"/>
+<text x="166.12" y="575" text-anchor="middle" font-size="10">0.2</text>
+<line class="grid" x1="214.25" y1="105" x2="214.25" y2="555"/>
+<text x="214.25" y="575" text-anchor="middle" font-size="10">0.3</text>
+<line class="grid" x1="262.38" y1="105" x2="262.38" y2="555"/>
+<text x="262.38" y="575" text-anchor="middle" font-size="10">0.4</text>
+<line class="grid" x1="310.50" y1="105" x2="310.50" y2="555"/>
+<text x="310.50" y="575" text-anchor="middle" font-size="10">0.5</text>
+<line class="grid" x1="358.62" y1="105" x2="358.62" y2="555"/>
+<text x="358.62" y="575" text-anchor="middle" font-size="10">0.6</text>
+<line class="grid" x1="406.75" y1="105" x2="406.75" y2="555"/>
+<text x="406.75" y="575" text-anchor="middle" font-size="10">0.7</text>
+<line class="grid" x1="454.88" y1="105" x2="454.88" y2="555"/>
+<text x="454.88" y="575" text-anchor="middle" font-size="10">0.8</text>
+<line class="grid" x1="503.00" y1="105" x2="503.00" y2="555"/>
+<text x="503.00" y="575" text-anchor="middle" font-size="10">0.9</text>
+<line class="axis" x1="118" y1="555" x2="503" y2="555"/>
+<line class="axis" x1="118" y1="105" x2="118" y2="555"/>
+<text x="82" y="330.00" text-anchor="middle" font-size="12" transform="rotate(-90 82 330.00)">Average probes</text>
+<text x="310.5" y="600" text-anchor="middle" font-size="13">Load factor α</text>
+<polyline class="line" stroke="#1769aa" points="118.00,487.56 166.12,484.61 214.25,481.22 262.38,477.81 310.50,475.09 358.62,471.45 406.75,468.13 454.88,464.94 503.00,461.27"/>
+<circle cx="118.00" cy="487.56" r="2.5" fill="#1769aa"/>
+<circle cx="166.12" cy="484.61" r="2.5" fill="#1769aa"/>
+<circle cx="214.25" cy="481.22" r="2.5" fill="#1769aa"/>
+<circle cx="262.38" cy="477.81" r="2.5" fill="#1769aa"/>
+<circle cx="310.50" cy="475.09" r="2.5" fill="#1769aa"/>
+<circle cx="358.62" cy="471.45" r="2.5" fill="#1769aa"/>
+<circle cx="406.75" cy="468.13" r="2.5" fill="#1769aa"/>
+<circle cx="454.88" cy="464.94" r="2.5" fill="#1769aa"/>
+<circle cx="503.00" cy="461.27" r="2.5" fill="#1769aa"/>
+<line x1="82" y1="100" x2="106" y2="100" stroke="#1769aa" stroke-width="2.5"/>
+<text x="112" y="104" font-size="10">Chaining measured</text>
+<polyline class="line theory" stroke="#1769aa" points="118.00,487.50 166.12,484.29 214.25,481.07 262.38,477.86 310.50,474.64 358.62,471.43 406.75,468.21 454.88,465.00 503.00,461.79"/>
+<line x1="307" y1="100" x2="331" y2="100" stroke="#1769aa" stroke-width="2.5" stroke-dasharray="7 5"/>
+<text x="337" y="104" font-size="10">Chaining theory</text>
+<polyline class="line" stroke="#c62828" points="118.00,487.05 166.12,482.97 214.25,476.68 262.38,468.10 310.50,456.85 358.62,440.15 406.75,412.73 454.88,359.03 503.00,163.63"/>
+<circle cx="118.00" cy="487.05" r="2.5" fill="#c62828"/>
+<circle cx="166.12" cy="482.97" r="2.5" fill="#c62828"/>
+<circle cx="214.25" cy="476.68" r="2.5" fill="#c62828"/>
+<circle cx="262.38" cy="468.10" r="2.5" fill="#c62828"/>
+<circle cx="310.50" cy="456.85" r="2.5" fill="#c62828"/>
+<circle cx="358.62" cy="440.15" r="2.5" fill="#c62828"/>
+<circle cx="406.75" cy="412.73" r="2.5" fill="#c62828"/>
+<circle cx="454.88" cy="359.03" r="2.5" fill="#c62828"/>
+<circle cx="503.00" cy="163.63" r="2.5" fill="#c62828"/>
+<line x1="82" y1="120" x2="106" y2="120" stroke="#c62828" stroke-width="2.5"/>
+<text x="112" y="124" font-size="10">Linear probing measured</text>
+<polyline class="line theory" stroke="#c62828" points="118.00,487.14 166.12,482.68 214.25,476.94 262.38,469.29 310.50,458.57 358.62,442.50 406.75,415.71 454.88,362.14 503.00,201.43"/>
+<line x1="307" y1="120" x2="331" y2="120" stroke="#c62828" stroke-width="2.5" stroke-dasharray="7 5"/>
+<text x="337" y="124" font-size="10">Linear probing theory</text>
+<text x="825.0" y="77" text-anchor="middle" font-size="17">Unsuccessful search</text>
+<line class="grid" x1="648" y1="555.00" x2="1033" y2="555.00"/>
+<text x="639" y="559.00" text-anchor="end" font-size="11">0</text>
+<line class="grid" x1="648" y1="480.00" x2="1033" y2="480.00"/>
+<text x="639" y="484.00" text-anchor="end" font-size="11">10</text>
+<line class="grid" x1="648" y1="405.00" x2="1033" y2="405.00"/>
+<text x="639" y="409.00" text-anchor="end" font-size="11">20</text>
+<line class="grid" x1="648" y1="330.00" x2="1033" y2="330.00"/>
+<text x="639" y="334.00" text-anchor="end" font-size="11">30</text>
+<line class="grid" x1="648" y1="255.00" x2="1033" y2="255.00"/>
+<text x="639" y="259.00" text-anchor="end" font-size="11">40</text>
+<line class="grid" x1="648" y1="180.00" x2="1033" y2="180.00"/>
+<text x="639" y="184.00" text-anchor="end" font-size="11">50</text>
+<line class="grid" x1="648" y1="105.00" x2="1033" y2="105.00"/>
+<text x="639" y="109.00" text-anchor="end" font-size="11">60</text>
+<line class="grid" x1="648.00" y1="105" x2="648.00" y2="555"/>
+<text x="648.00" y="575" text-anchor="middle" font-size="10">0.1</text>
+<line class="grid" x1="696.12" y1="105" x2="696.12" y2="555"/>
+<text x="696.12" y="575" text-anchor="middle" font-size="10">0.2</text>
+<line class="grid" x1="744.25" y1="105" x2="744.25" y2="555"/>
+<text x="744.25" y="575" text-anchor="middle" font-size="10">0.3</text>
+<line class="grid" x1="792.38" y1="105" x2="792.38" y2="555"/>
+<text x="792.38" y="575" text-anchor="middle" font-size="10">0.4</text>
+<line class="grid" x1="840.50" y1="105" x2="840.50" y2="555"/>
+<text x="840.50" y="575" text-anchor="middle" font-size="10">0.5</text>
+<line class="grid" x1="888.62" y1="105" x2="888.62" y2="555"/>
+<text x="888.62" y="575" text-anchor="middle" font-size="10">0.6</text>
+<line class="grid" x1="936.75" y1="105" x2="936.75" y2="555"/>
+<text x="936.75" y="575" text-anchor="middle" font-size="10">0.7</text>
+<line class="grid" x1="984.88" y1="105" x2="984.88" y2="555"/>
+<text x="984.88" y="575" text-anchor="middle" font-size="10">0.8</text>
+<line class="grid" x1="1033.00" y1="105" x2="1033.00" y2="555"/>
+<text x="1033.00" y="575" text-anchor="middle" font-size="10">0.9</text>
+<line class="axis" x1="648" y1="555" x2="1033" y2="555"/>
+<line class="axis" x1="648" y1="105" x2="648" y2="555"/>
+<text x="612" y="330.00" text-anchor="middle" font-size="12" transform="rotate(-90 612 330.00)">Average probes</text>
+<text x="840.5" y="600" text-anchor="middle" font-size="13">Load factor α</text>
+<polyline class="line" stroke="#1769aa" points="648.00,554.22 696.12,553.57 744.25,552.83 792.38,552.06 840.50,551.30 888.62,550.59 936.75,549.88 984.88,549.13 1033.00,548.38"/>
+<circle cx="648.00" cy="554.22" r="2.5" fill="#1769aa"/>
+<circle cx="696.12" cy="553.57" r="2.5" fill="#1769aa"/>
+<circle cx="744.25" cy="552.83" r="2.5" fill="#1769aa"/>
+<circle cx="792.38" cy="552.06" r="2.5" fill="#1769aa"/>
+<circle cx="840.50" cy="551.30" r="2.5" fill="#1769aa"/>
+<circle cx="888.62" cy="550.59" r="2.5" fill="#1769aa"/>
+<circle cx="936.75" cy="549.88" r="2.5" fill="#1769aa"/>
+<circle cx="984.88" cy="549.13" r="2.5" fill="#1769aa"/>
+<circle cx="1033.00" cy="548.38" r="2.5" fill="#1769aa"/>
+<line x1="612" y1="100" x2="636" y2="100" stroke="#1769aa" stroke-width="2.5"/>
+<text x="642" y="104" font-size="10">Chaining measured</text>
+<polyline class="line theory" stroke="#1769aa" points="648.00,554.25 696.12,553.50 744.25,552.75 792.38,552.00 840.50,551.25 888.62,550.50 936.75,549.75 984.88,549.00 1033.00,548.25"/>
+<line x1="837" y1="100" x2="861" y2="100" stroke="#1769aa" stroke-width="2.5" stroke-dasharray="7 5"/>
+<text x="867" y="104" font-size="10">Chaining theory</text>
+<polyline class="line" stroke="#c62828" points="648.00,546.61 696.12,545.44 744.25,543.68 792.38,540.96 840.50,536.06 888.62,527.52 936.75,508.80 984.88,452.29 1033.00,167.49"/>
+<circle cx="648.00" cy="546.61" r="2.5" fill="#c62828"/>
+<circle cx="696.12" cy="545.44" r="2.5" fill="#c62828"/>
+<circle cx="744.25" cy="543.68" r="2.5" fill="#c62828"/>
+<circle cx="792.38" cy="540.96" r="2.5" fill="#c62828"/>
+<circle cx="840.50" cy="536.06" r="2.5" fill="#c62828"/>
+<circle cx="888.62" cy="527.52" r="2.5" fill="#c62828"/>
+<circle cx="936.75" cy="508.80" r="2.5" fill="#c62828"/>
+<circle cx="984.88" cy="452.29" r="2.5" fill="#c62828"/>
+<circle cx="1033.00" cy="167.49" r="2.5" fill="#c62828"/>
+<line x1="612" y1="120" x2="636" y2="120" stroke="#c62828" stroke-width="2.5"/>
+<text x="642" y="124" font-size="10">Linear probing measured</text>
+<polyline class="line theory" stroke="#c62828" points="648.00,546.62 696.12,545.39 744.25,543.60 792.38,540.83 840.50,536.25 888.62,527.81 936.75,509.58 984.88,457.50 1033.00,176.25"/>
+<line x1="837" y1="120" x2="861" y2="120" stroke="#c62828" stroke-width="2.5" stroke-dasharray="7 5"/>
+<text x="867" y="124" font-size="10">Linear probing theory</text>
+<text x="560" y="608" text-anchor="middle" font-size="11">Capacity: 10000; inserted and queried keys/order shared; seed: 20261120</text>
 </svg>
