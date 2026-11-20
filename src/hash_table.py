@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from collections.abc import Iterator
+
 
 class _Node:
     __slots__ = ("key", "value", "next")
@@ -73,6 +75,30 @@ class HashTable:
                 return node.value, comparisons
             node = node.next
         return None, comparisons
+
+    def iter_buckets(self) -> Iterator[tuple[int, tuple[tuple[str, str], ...]]]:
+        """Yield each bucket index and its key-value pairs in chain order."""
+        for bucket_index, head in enumerate(self._buckets):
+            entries: list[tuple[str, str]] = []
+            node = head
+            while node is not None:
+                entries.append((node.key, node.value))
+                node = node.next
+            yield bucket_index, tuple(entries)
+
+    def horner_trace(self, key: str) -> tuple[tuple[str, int, int, int], ...]:
+        """Return each character, prior hash, code point, and resulting hash."""
+        if not isinstance(key, str):
+            raise TypeError("key must be a string")
+
+        value = 0
+        steps: list[tuple[str, int, int, int]] = []
+        for character in key:
+            previous_value = value
+            code_point = ord(character)
+            value = (value * 31 + code_point) % self.capacity
+            steps.append((character, previous_value, code_point, value))
+        return tuple(steps)
 
     def _bucket_index(self, key: str) -> int:
         value = 0

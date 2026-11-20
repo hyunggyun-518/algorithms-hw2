@@ -52,6 +52,16 @@ class HashTableTests(unittest.TestCase):
         self.assertEqual(table.get_with_probes("first"), ("one", 2))
         self.assertEqual(table.get_with_probes("missing"), (None, 2))
 
+    def test_bucket_snapshot_and_horner_trace_expose_chain_details(self):
+        table = HashTable(capacity=8, max_load=None)
+        table.put("a", "1")
+        table.put("i", "2")
+
+        buckets = tuple(table.iter_buckets())
+
+        self.assertEqual(buckets[1], (1, (("i", "2"), ("a", "1"))))
+        self.assertEqual(table.horner_trace("a"), (("a", 0, 97, 1),))
+
 
 if __name__ == "__main__":
     unittest.main()
