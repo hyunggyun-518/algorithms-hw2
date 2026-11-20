@@ -16,6 +16,17 @@ else:
     from shortener import URLShortener
 
 
+class _JSONObject:
+    def __init__(self, pairs: list[tuple[str, object]]) -> None:
+        self._pairs = pairs
+
+    def get(self, name: str) -> object | None:
+        for key, value in reversed(self._pairs):
+            if key == name:
+                return value
+        return None
+
+
 class _ShortenerHTTPServer(HTTPServer):
     allow_reuse_address = True
 
@@ -29,38 +40,51 @@ class _ShortenerRequestHandler(BaseHTTPRequestHandler):
 
     def do_POST(self) -> None:
         if urlsplit(self.path).path != "/shorten":
-            self._send_json(HTTPStatus.NOT_FOUND, {"error": "not found"})
+            self._send_json(HTTPStatus.NOT_FOUND, (("error", "not found"),))
             return
 
         try:
             content_length = int(self.headers.get("Content-Length", ""))
             if content_length < 0:
                 raise ValueError("invalid Content-Length")
-            payload = json.loads(self.rfile.read(content_length))
+            payload = json.loads(
+                self.rfile.read(content_length),
+                object_pairs_hook=_JSONObject,
+            )
         except (UnicodeDecodeError, ValueError) as error:
-            self._send_json(HTTPStatus.BAD_REQUEST, {"error": str(error)})
+            self._send_json(HTTPStatus.BAD_REQUEST, (("error", str(error)),))
             return
 
-        if not isinstance(payload, dict) or not isinstance(payload.get("url"), str):
-            self._send_json(HTTPStatus.BAD_REQUEST, {"error": "JSON body must contain a URL"})
+        if not isinstance(payload, _JSONObject):
+            self._send_json(
+                HTTPStatus.BAD_REQUEST,
+                (("error", "JSON body must contain a URL"),),
+            )
+            return
+        url = payload.get("url")
+        if not isinstance(url, str):
+            self._send_json(
+                HTTPStatus.BAD_REQUEST,
+                (("error", "JSON body must contain a URL"),),
+            )
             return
 
         try:
-            code, is_new = self.server.shortener.shorten_with_status(payload["url"])
+            code, is_new = self.server.shortener.shorten_with_status(url)
         except ValueError as error:
-            self._send_json(HTTPStatus.BAD_REQUEST, {"error": str(error)})
+            self._send_json(HTTPStatus.BAD_REQUEST, (("error", str(error)),))
             return
 
         status = HTTPStatus.CREATED if is_new else HTTPStatus.OK
         self._send_json(
             status,
-            {"code": code, "short_url": f"/{code}"},
+            (("code", code), ("short_url", f"/{code}")),
         )
 
     def do_GET(self) -> None:
         path = urlsplit(self.path).path
         if not path.startswith("/") or path.count("/") != 1:
-            self._send_json(HTTPStatus.NOT_FOUND, {"error": "not found"})
+            self._send_json(HTTPStatus.NOT_FOUND, (("error", "not found"),))
             return
 
         code = path[1:]
@@ -68,7 +92,7 @@ class _ShortenerRequestHandler(BaseHTTPRequestHandler):
             decode(code)
             url = self.server.shortener.expand(code)
         except (KeyError, ValueError):
-            self._send_json(HTTPStatus.NOT_FOUND, {"error": "not found"})
+            self._send_json(HTTPStatus.NOT_FOUND, (("error", "not found"),))
             return
 
         self.send_response(HTTPStatus.FOUND)
@@ -83,12 +107,24 @@ class _ShortenerRequestHandler(BaseHTTPRequestHandler):
         explain: str | None = None,
     ) -> None:
         if code == HTTPStatus.NOT_IMPLEMENTED:
-            self._send_json(HTTPStatus.METHOD_NOT_ALLOWED, {"error": "method not allowed"})
+            self._send_json(
+                HTTPStatus.METHOD_NOT_ALLOWED,
+                (("error", "method not allowed"),),
+            )
             return
         super().send_error(code, message, explain)
 
-    def _send_json(self, status: HTTPStatus, payload: dict[str, str]) -> None:
-        body = json.dumps(payload, ensure_ascii=False).encode("utf-8")
+    def _send_json(
+        self,
+        status: HTTPStatus,
+        fields: tuple[tuple[str, str], ...],
+    ) -> None:
+        members = (
+            f"{json.dumps(key, ensure_ascii=False)}:"
+            f"{json.dumps(value, ensure_ascii=False)}"
+            for key, value in fields
+        )
+        body = ("{" + ",".join(members) + "}").encode("utf-8")
         self.send_response(status)
         self.send_header("Content-Type", "application/json; charset=utf-8")
         self.send_header("Content-Length", str(len(body)))
