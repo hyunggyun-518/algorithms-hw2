@@ -15,9 +15,20 @@ class _Node:
 class HashTable:
     """Store string keys and values without Python's built-in hash table."""
 
-    def __init__(self) -> None:
-        self._buckets: list[_Node | None] = [None] * 8
+    def __init__(self, capacity: int = 8, max_load: float | None = 0.75) -> None:
+        if isinstance(capacity, bool) or not isinstance(capacity, int):
+            raise TypeError("capacity must be an integer")
+        if capacity <= 0:
+            raise ValueError("capacity must be positive")
+        if max_load is not None:
+            if isinstance(max_load, bool) or not isinstance(max_load, (int, float)):
+                raise TypeError("max_load must be a positive number or None")
+            if max_load <= 0:
+                raise ValueError("max_load must be positive")
+
+        self._buckets: list[_Node | None] = [None] * capacity
         self._size = 0
+        self._max_load = max_load
 
     @property
     def capacity(self) -> int:
@@ -40,19 +51,28 @@ class HashTable:
 
         self._buckets[index] = _Node(key, value, self._buckets[index])
         self._size += 1
-        if self._size / self.capacity > 0.75:
+        if self._max_load is not None and self._size / self.capacity > self._max_load:
             self._resize()
 
     def get(self, key: str) -> str:
+        value, _ = self.get_with_probes(key)
+        if value is None:
+            raise KeyError(key)
+        return value
+
+    def get_with_probes(self, key: str) -> tuple[str | None, int]:
+        """Return the value, if present, and the number of nodes compared."""
         if not isinstance(key, str):
             raise TypeError("key must be a string")
 
         node = self._buckets[self._bucket_index(key)]
+        comparisons = 0
         while node is not None:
+            comparisons += 1
             if node.key == key:
-                return node.value
+                return node.value, comparisons
             node = node.next
-        raise KeyError(key)
+        return None, comparisons
 
     def _bucket_index(self, key: str) -> int:
         value = 0
