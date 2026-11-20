@@ -10,16 +10,30 @@ from urllib.parse import urlencode
 from urllib.request import HTTPRedirectHandler, Request, build_opener
 
 from src.base62 import encode
+from src.hash_table import HashTable, LinearProbingHashTable
 from src.shortener import URLShortener
 
 
 class ShortenerTests(unittest.TestCase):
     strategies = ("chaining", "linear-probing")
 
+    def _create_shortener(self, strategy="chaining"):
+        shortener = URLShortener(strategy)
+        table_type = HashTable if strategy == "chaining" else LinearProbingHashTable
+
+        self.assertIsInstance(shortener._url_to_code, table_type)
+        self.assertIsInstance(shortener._code_to_url, table_type)
+        return shortener
+
+    def test_default_constructor_uses_separate_chaining(self):
+        shortener = self._create_shortener()
+
+        self.assertEqual(shortener.strategy, "chaining")
+
     def test_first_code_is_base62_encoding_of_one(self):
         for strategy in self.strategies:
             with self.subTest(strategy=strategy):
-                shortener = URLShortener(strategy)
+                shortener = self._create_shortener(strategy)
                 self.assertEqual(shortener.shorten("https://example.com/first"), encode(1))
 
     def test_surrounding_whitespace_is_removed_and_url_is_preserved(self):
@@ -27,7 +41,7 @@ class ShortenerTests(unittest.TestCase):
 
         for strategy in self.strategies:
             with self.subTest(strategy=strategy):
-                shortener = URLShortener(strategy)
+                shortener = self._create_shortener(strategy)
                 code = shortener.shorten(f"  {url}  ")
 
                 self.assertEqual(shortener.expand(code), url)
@@ -36,7 +50,7 @@ class ShortenerTests(unittest.TestCase):
         for strategy in self.strategies:
             for url in ("", "   ", "not-a-url", "ftp://example.com/path", "https:///path"):
                 with self.subTest(strategy=strategy, url=url), self.assertRaises(ValueError):
-                    URLShortener(strategy).shorten(url)
+                    self._create_shortener(strategy).shorten(url)
 
     def test_duplicate_url_reuses_code_without_consuming_an_id(self):
         first_url = "https://example.com/first"
@@ -44,7 +58,7 @@ class ShortenerTests(unittest.TestCase):
 
         for strategy in self.strategies:
             with self.subTest(strategy=strategy):
-                shortener = URLShortener(strategy)
+                shortener = self._create_shortener(strategy)
                 first_code = shortener.shorten(first_url)
                 self.assertEqual(shortener.shorten(first_url), first_code)
 
@@ -53,7 +67,7 @@ class ShortenerTests(unittest.TestCase):
     def test_distinct_urls_receive_distinct_codes(self):
         for strategy in self.strategies:
             with self.subTest(strategy=strategy):
-                shortener = URLShortener(strategy)
+                shortener = self._create_shortener(strategy)
                 first_code = shortener.shorten("https://example.com/one")
                 second_code = shortener.shorten("https://example.com/two")
 
@@ -62,7 +76,7 @@ class ShortenerTests(unittest.TestCase):
     def test_unknown_code_and_non_string_code_are_rejected(self):
         for strategy in self.strategies:
             with self.subTest(strategy=strategy):
-                shortener = URLShortener(strategy)
+                shortener = self._create_shortener(strategy)
                 with self.assertRaises(KeyError):
                     shortener.expand("not-registered")
                 with self.assertRaises(TypeError):
@@ -198,32 +212,44 @@ class ShortenerHTTPTests(unittest.TestCase):
     def test_linear_table_page_shows_lookup_trace_and_reason(self):
         self._stop_server()
         self._start_server("linear-probing")
-        url = "https://example.com/linear"
-        status, _, _ = self._request(
-            "POST",
-            "/shorten",
-            json.dumps({"url": url}).encode(),
-        )
-        self.assertEqual(status, 201)
+        urls = ("https://example.com/a", "https://example.com/i")
+        expected_table = LinearProbingHashTable()
+        for url in urls:
+            expected_table.put(url, url)
+            status, _, _ = self._request(
+                "POST",
+                "/shorten",
+                json.dumps({"url": url}).encode(),
+            )
+            self.assertEqual(status, 201)
 
-        status, _, body = self._request("GET", f"/table?key={url}")
+        search_url = urls[1]
+        start_index = expected_table.horner_trace(search_url)[-1][3]
+        expected_value, checked_slots = expected_table.get_with_trace(search_url)
+        checked_text = " → ".join(str(slot) for slot in checked_slots)
+        self.assertEqual(expected_value, search_url)
+        self.assertGreater(len(checked_slots), 1)
+
+        status, _, body = self._request("GET", f"/table?key={search_url}")
         page = body.decode("utf-8")
 
         self.assertEqual(status, 200)
         self.assertEqual(page.count('<section class="slot">'), 8)
         self.assertIn("선형 탐지", page)
         self.assertIn("호너 해시 계산 보기", page)
-        self.assertIn("시작 칸:", page)
-        self.assertIn("확인한 칸 순서:", page)
+        self.assertIn(f"시작 칸: {start_index}", page)
+        self.assertIn(f"확인한 칸 순서: <code>{checked_text}</code>", page)
         self.assertIn("성공:", page)
-        self.assertIn(url, page)
+        self.assertIn(search_url, page)
 
         missing_url = "https://example.com/not-stored"
+        _, missing_slots = expected_table.get_with_trace(missing_url)
+        missing_text = " → ".join(str(slot) for slot in missing_slots)
         status, _, body = self._request("GET", f"/table?key={missing_url}")
         page = body.decode("utf-8")
 
         self.assertEqual(status, 200)
-        self.assertIn("확인한 칸 순서:", page)
+        self.assertIn(f"확인한 칸 순서: <code>{missing_text}</code>", page)
         self.assertIn("실패:", page)
         self.assertIn("비어 있어 키가 없음을 확정했습니다.", page)
 
